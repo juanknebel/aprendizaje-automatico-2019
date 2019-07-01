@@ -321,3 +321,233 @@ Luego dependiendo del problema que estoy queriendo resolver elijo cual me convie
 Siempre elijo aquella curva que me deja más área.
 
 ## Naive Bayes
+
+## Aprendizaje no supervisado
+
+### Tipos de Aprendizaje
+* Supervisado:
+    * requiere instancias para entrenamiento.
+    * regresión, clasificación.
+    * objetivo: encontrar una hipótesis que satisfaga los datos.
+    * árboles de decisión, Naive Bayes, KNN, NN, Ensambles.
+* No supervisado:
+    * instancias no están etiquetedas.
+    * se usa para visualizar los datos, entedenderlos resumirlos.
+    * clustering, reducción de la dimensionalidad (PCA, T-SNE, MDS, ISOMAP).
+    * objetivo: que el algoritmo encuentre cierta estructura.
+    * clustering.
+* Aprendizaje por refuerzos:
+    * no tiene entrenador. Interactúa con el ambiente y tiene premios y castigos.
+    * tarea: aprender a elegir acciones óptimas para lograr su objetivo.
+
+### Clustering
+
+Encontrar grupos de instancias (clusters) a partir de información en los datos que describan objetos y sus relaciones. Las instancias de un cluster tienen que ser: similares entre sí y diferentes a otros clusters.
+
+Tipos de clustering:
+* partición / jerárquicos.
+* exclusivos / no exclusivos.
+
+#### Algoritmos
+
+* De partición: se clasifican n datos en k cllusters. Cada cluster satisface requerimientos de una particion.
+    * cada dato está en un solo cluster.
+    * cada cluster debe tener al menos un dato.
+* Jerárquicos:
+    * Aglomerativos (bottom up): empiezan con n clusters y se combinan grupos hasa terminar en un cluster con n obsevaciones.
+    * Divisorios (top down): comienzan con un cluster de n observaciones y en cada paso se divide un cluster en dos hasta tener n clusters.
+
+#### K means
+
+Es de partición, comienza con k centroides (puntos al azar, o datos al azar), los elementos se asocian al centroide mas cercano. Se necesita función de costo. Múltiples inicializaciones para que evitar óptimos locales. Clusters sin elementos se eliminan.
+
+Distancias que se pueden utilizar:
+* para numéricos continuos: euclídea, Manhattan, Chebychev.
+* para discretos: VDM.
+* para documentos: Similaridad de coseno, Jackard.
+* para cadena de caracteres: Hamming o Levensthein.
+
+Elección del k:
+* manualmente --> genera ambiguedad.
+* elbow method.
+* evaluar con una métrica.
+
+Ventajas
+* algoritmo simple.
+* eficiente.
+
+Desventajas
+* sensible a la elección de los centroides iniciales.
+* sensible al ruido y outliers.
+* hay que especificar el k.
+
+#### Expectation Maximization
+
+Gaussian mixture models.
+Asumimos overlap o softclustering.
+
+#### Single linkage
+
+Es un algoritmo aglomerativo. Cada dato forma un clusters, computar matriz de proximidad. Une los cluster más similares y actualiza la matriz hasta que haya un solo cluster.
+
+Similaridad:
+* MIN (single linkage): distancia mínima entre dos puntos de los dos clusters.
+* MAX (complete link): distancia máxima entre dos puntos de los clusters.
+* AVG: promedio de la distancia entre los puntos de los clusters.
+* distancia entre los centroides.
+
+Ventajas:
+* no asume ningún número de clusters (se obtiene cortando el dendograma).
+* pueden corresponder a taxonomías (reino animal).
+
+Desventajas:
+* sensible a ruido y outliers.
+* computacionalmente más caro en tiempo y espacio.
+
+## Ensambles de modelos
+
+### Sesgo y varianza
+
+Error debido a sesgo (bias): debido a diferencia entre predicción del modelo (o promedio de predicciones) y valor correcto.
+
+Error debido a varianza: la variabilidad de la predicción de un modelo para unos datos dados. Cuánto varían los resultados para distintos datos.
+
+$$ Y = f(X)\ +\  \epsilon $$
+con X,Y datos de entrada.
+$$ Err(x) = Bias^{2}\ +\ Variance\ +\ IrreducibleError $$
+Para disminuir el error requerimos un método que tenga bajo sesgo y varianza.
+
+**Algoritmos de aprendizaje inestables**: sufren cambios importantes antes pequeñas variaciones en datos de entrenamiento (árboles de decisión, redes neuronales).
+
+**Predictores rígidos**: poca flexibilidad, menos complejos. Mayor error de sesgo.
+**Predictores flexibles**: más complejos. Mayor error de varianza y menos de sesgo.
+
+#### Dilema Bias - Varianza
+
+A bajo sesgo, alta varianza y a alto sesgo baja varianza.
+
+Soluciones:
+* usar predictores con bajo sesgo para disminuir la varianza (bagging y random forest).
+* reducir sesgo de predictores (boosting).
+
+### Ensambles
+
+Uso de un conjunto de modelos para construir un **meta modelo**. Usar el conocimiento de distintas fuentes para tomar decisiones. Muy usado en competencias.
+Como combinar decisiones: votación simple o ponderada, promedio simple, pesado o condicional.
+
+| **Ensambles**  | **Planos** | **Divisivos** |
+| -- | -- | -- |
+| | comité de expertos en un mismo tema | comité de expertos en distintas áreas |
+| **Algoritmos** | bagging, boosting, random forest| stacking, mezcla de expertos |
+
+### Bootstrapping
+
+* Herramienta estadística.
+* Técnica de resampleo a partir de un conjunto de datos con reemplazo.
+
+### Bagging
+
+* Arquitectura paralela.
+* Para reducir la varianza.
+* Promediar un conjunto de observaciones reduce la varianza.
+* No se tiene muchos conjuntos de entrenamiento, entonces usa bootstrap para tomar muestras repetidas.
+* Útil cuando los resultados son sensibles a los conjuntos de entrenamiento.
+
+### Random forest
+
+* Mejora bagging cuando se usa con árboles de decisión --> atributos que son predictores fuertes (alto information gain) entonces los árboles serán muy similares.
+* Intenta eliminar la correlación de los árboles.
+* En cada split de un nodo se considera solo un subconjunto **m** de los **p** atributos elegidos al azar. m ~= sqrt(p).
+
+### Boosting
+
+Arquitectura secuencial. Difiere de bagging en que cada modelo se arma usando información de los modelos anteriores. Se computan pesos para mejorar los casos en que el algoritmo dio mal (Ejemplo de weight-based: AdaBoost). Procedimiento:
+1. modelo simple h0.
+2. en cada iteración i, entrenar hi dando mayor importancia a los datos mal clasificados por la iterción anterior.
+3. terminar luego de una cantidad determinada de iteraciones.
+4. clasificar nuevas instancias usando votación de todos los modelos construidos.
+
+### Stacking
+
+Hacer varias predicciones a un held-out dataset. Usar esas predicciones para armar un nuevo dataset para entrenar un nuevo modelo, usa distintos clasificadores. Procedimiento:
+1. dividir el dataset en entrenamiento y validación (aparte queda el held-out).
+2. entrenar distintos modelos con el dataset de entrenamiento.
+3. hacer predicciones con los modelos entrenados sobre el held-out.
+4. usar los resultados de 3 para entrenar otro modelo (metamodelo).
+
+### Resúmen
+
+Para clasificadores inestables (árboles de decisión) usar bagging o random forest.
+Para clasificadores estables y simples (Naive Bayes) usar boosting.
+
+## Aprendizaje por refuerzos
+
+**Agente autónomo**: percibe e interactúa con el ambiente. Tiene que elegir acciones óptimas para lograr su objetivo.
+* percibe el estado de su entorno.
+* realiza acciones para alterar su estado.
+* obtiene recompensas o catigos.
+* Tarea:
+    * realizar secuencias de acciones, observar sus consecuencias y aprender una estrategia de control.
+    * queremos aquella secuencia desde un estado inicial que elige acciones que maximizan la recompensa acumulada en el tiempo.
+
+### Proceso de Decisión de Markov (MDP)
+
+Los problemas de RL modelan el mundo usando MDP.
+$$ MDP: <S,A,\delta,R,\gamma> $$
+Con:
+* S: conjunto de estados.
+* A: conjunto de acciones.
+* $\delta$: S x A --> S una función de transición determinística (podría no serlo, ej: probabilística).
+* R: S x A --> $\R$ una funciíon de recompensa.
+* $\gamma$ $\in$ [0,1): factor de descuento.
+
+En MDP la recompensa y la transición de un estado a otro dependen del estado actual (no de los anteriores).
+* El agente percibe el estado st, elige y realiza una acción at.
+* El ambiente responde dando una recompensa rt = R(st, at).
+* R(st, at) depende solo del estado actual no de los anteriores.
+
+**Tarea**: aprender política para elegir acción at a partir de st. Se busca la política que arroja mayor recompensa acumulada.
+
+Dada una política o estrategia de control: $\pi$: S --> A. Se define una función valor:
+$$ V^{\pi}(S)\ =\ r_{0}\ +\ \gamma r_{1}\ +\ \gamma r_{2}\ +\ ...\ =\ \sum_{t=0}^{\infty}\ \gamma^{t} r_{t}$$
+
+como la recompensa acumulada (con descuentos) al seguir una política $\pi$ para seleccionar acciones a partir del estados s.
+
+$\gamma$: valor de recompensas retrasadas vs inmediatas. Si $\gamma$ ~= 0 es solo recompensa inmediata y $\gamma$ ~= 1 se da más peso a recompensas futuras.
+
+Función objetivo: política de control que maximiza la función del valor.
+
+### Estrategias
+
+* Dilema exploración - explotación
+    * Estrategia $\epsilon$-first
+        * con probabilidad 1-$\epsilon$ se elige al azar.
+        * con probabilidad $\epsilon$ se elige mejor acción conocida.
+    * Estrategia $\epsilon$-greedy
+        * con probabilidad $\epsilon$ se elige al azar.
+        * con probabilidad 1-$\epsilon$ se elige mejor acción conocida.
+    * Azar: distribución uniforme.
+
+### Q learning
+
+* Aprender la política óptima.
+* $\alpha$ $\in$ (0,1]: tasa de aprendizaje 
+* $\pi$(S) = $argmax_{a}$ Q(s,a)
+* Estrategia: $\epsilon$-first o $\epsilon$-greedy.
+
+### Deep reinforcement learning
+
+* Aproximación de Q(S,A) con una red neuronal convolucional (CNN).
+
+### Resumen
+
+* Recompensa tardía: queremos aprender $\pi$, tal que dado un estado S,A = $\pi$(S). No tenemos como entrada el par (S, $\pi$(S)).
+* Estrategias de experimentación: dilema **exploración** (nuevos) vs **explotación** (conocidos). El entrenamiento está dado por la secuencia de acciones que se sigue.
+* Estados parcial o totalmente observables.
+* Aprendizaje permanente.
+* Interacción con el ambiente.
+* Aprendizaje con un crítico en vez de aprendizaje con un maestro. No avisa de antemano.
+* Proceso de decisión de Markov, $MDP:<S,A,\delta,R,\gamma>$.
+* Política $\pi$, función de valor $V^{\pi}(S)$, función Q(S,A).
+* Estrategias $\epsilon$-greedy y $\epsilon$-first.
+* Algoritmo Q-Learning.
